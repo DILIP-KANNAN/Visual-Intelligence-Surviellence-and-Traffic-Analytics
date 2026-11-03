@@ -1,12 +1,94 @@
-venv/
-__pycache__/
-*.pyc
-cache/
-dist/
-node_modules/
-frontend/node_modules/
-frontend/dist/
-frontend-1/node_modules/
-frontend-1/dist/
+# ==============================================================================
+# Environment & Secrets (Never commit credentials)
+# ==============================================================================
 .env
+.env.*
+!.env.example
+*.env
+*.pem
+*.key
+
+# ==============================================================================
+# Python & Virtual Environments
+# ==============================================================================
+venv/
+.venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ==============================================================================
+# Node & Frontend Build Artifacts
+# ==============================================================================
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.npm/
+.eslintcache
+*.tsbuildinfo
+
+# ==============================================================================
+# Logs & Runtime Caches
+# ==============================================================================
 *.log
+**/*.log
+logs/
+cache/
+**/cache/
+.cache/
+
+# ==============================================================================
+# Database Backups & Dumps (Only schema.sql and seeders are versioned)
+# ==============================================================================
+*.dump
+city_traffic.sql
+city_traffic_backup.dump
+city_traffic_supabase.sql
+synthetic_events_seed.sql
+
+# ==============================================================================
+# Heavy Binary / Geospatial Graph Models
+# ==============================================================================
+*.graphml
+check/chennai_drive.graphml
+
+# ==============================================================================
+# Internal Team Integration & Scratch Documentation
+# ==============================================================================
+HANDOFF.md
+walkthrough.md
+
+# ==============================================================================
+# Editor & Platform Metadata
+# ==============================================================================
+.bolt/
+frontend-1/.bolt/
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+desktop.ini

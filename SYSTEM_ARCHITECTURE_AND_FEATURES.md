@@ -1,16 +1,58 @@
-# City Traffic Intelligence System — Architecture & Feature Guide
+# 🚦 Visual Intelligence, Surveillance and Traffic Analytics (VISTA / NeuralGrid)
+## System Architecture & Feature Guide
 
-## 1. How Does Data Enter Without Physical CCTV Cameras?
+> For comprehensive formal specifications, sequence flows, entity-relationship diagrams, and mathematical formulations, refer to [TECHNICAL_DESIGN.md](file:///TECHNICAL_DESIGN.md).
+
+---
+
+## 1. High-Level Architecture Diagram
+
+```mermaid
+flowchart TD
+    subgraph Ingestion["Perception & Ingestion Layer"]
+        CCTV["CCTV Edge AI (YOLO + PaddleOCR)"] -->|JSON Event| RedisStream["Redis Stream: anpr_events"]
+        DemoStreamer["Live Scenario Streamer (demo_streamer.py)"] -->|Simulated ANPR Flow| RedisStream
+        RedisStream --> Consumer["Redis Consumer (redis_consumer.py)"]
+    end
+
+    subgraph Storage["Storage & Spatiotemporal Engine"]
+        Consumer --> PG_Events[("PostgreSQL + PostGIS\nevents / vehicles")]
+        PG_Events -->|PostgreSQL Trigger| TrajectoryEngine["Trajectory Engine (trajectory_engine.py)"]
+        TrajectoryEngine --> PG_Traj[("trajectories")]
+        PG_Traj -->|pg_notify| TrajPublisher["Trajectory Publisher (trajectory_event_publisher.py)"]
+    end
+
+    subgraph Analytics["Continuous Analytical Engines"]
+        TrajPublisher --> StreamTraj["Redis Stream: trajectory_events"]
+        StreamTraj --> RouteAnomaly["Route Anomaly Worker (2σ Outliers)"]
+        StreamTraj --> CongestionEngine["Congestion & Delay Engine (15-min Baselines)"]
+        CongestionEngine --> Propagation["Delay Propagation Engine (Downstream Cascades)"]
+        PG_Events --> CameraHealth["Camera Health Sentinel (Heartbeat Audits)"]
+        PG_Events --> Convoy["Collective Movement Engine (Convoy Detection)"]
+        RouteAnomaly & CameraHealth & Convoy --> PG_Alerts[("alerts")]
+        PG_Alerts --> AuthorityEngine["Authority Assignment Engine (Police Divisions)"]
+    end
+
+    subgraph Realtime["Real-Time Gateway & UI"]
+        TrajPublisher -->|trajectory_events / alert_events| FastAPIServer["FastAPI Gateway (/ws/traffic)"]
+        AuthorityEngine --> FastAPIServer
+        FastAPIServer --> Frontend["React + MapLibre Command Center\n(Live Map, Alerts, Vehicle Dossier, Analytics)"]
+    end
+```
+
+---
+
+## 2. How Does Data Enter Without Physical CCTV Cameras?
 
 In a live smart city deployment, physical CCTV cameras run Edge AI (YOLO detection + PaddleOCR) to read license plates and push events into the ingestion pipeline.
 
-In development, testing, and evaluation, we simulate this using a **Real-Time ANPR Producer** (`mock_anpr_producer.py` or `redis_producer.py`). 
+In development, testing, and evaluation, we simulate this using the **Live Scenario Simulation Streamer** (`demo_streamer.py`) or the standalone producer client (`redis_producer.py`). 
 
 ### The Complete Event Pipeline:
 ```
 [ LIVE CCTV / VIDEO STREAM ] (Production)
               OR                                ──> Emits JSON: { camera_id, license_plate, timestamp, confidence }
-[ MOCK PRODUCER (mock_anpr_producer.py) ] (Dev/Demo)
+[ DEMO STREAMER (demo_streamer.py) ] (Dev/Demo)
               │
               ▼
    [ REDIS STREAM: anpr_events ]
@@ -21,7 +63,7 @@ In development, testing, and evaluation, we simulate this using a **Real-Time AN
               ├──────────────────────────────────┐
               ▼                                  ▼
       [ PostgreSQL: events ]          [ PostgreSQL: trajectories ]
-      Raw detections stored           Auto-links: CAM001 -> CAM002
+      Raw detections stored           Auto-links: CAM01 -> CAM02
                                                  │
                                                  ▼ (PostgreSQL Trigger)
                                       [ NOTIFY trajectory_created ]
@@ -42,11 +84,11 @@ In development, testing, and evaluation, we simulate this using a **Real-Time AN
                                      [ FRONTEND DASHBOARD ]
 ```
 
-When you run `python mock_anpr_producer.py`, it generates continuous vehicle sightings across cameras (e.g. `CAM001`, `CAM002`, `CAM003`) along real Chennai highway routes. Once Member 1 connects the real YOLO/PaddleOCR camera feed, it simply pushes the same JSON format to the Redis `anpr_events` stream—zero code changes required in the rest of the backend or frontend!
+When you run `python demo_streamer.py` (or `python start_system.py --demo`), it continuously generates vehicle sightings across cameras (e.g. `CAM01`, `CAM02`, `CAM03` ... `CAM10`) along real Chennai highway routes. Once real YOLO/PaddleOCR camera feeds are connected, they push the identical JSON format to the Redis `anpr_events` stream—zero code changes required in the rest of the backend or frontend!
 
 ---
 
-## 2. Detailed Feature Breakdown & Frontend Location
+## 3. Detailed Feature Breakdown & Frontend Location
 
 ---
 
