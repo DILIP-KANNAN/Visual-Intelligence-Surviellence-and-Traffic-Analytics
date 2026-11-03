@@ -338,3 +338,4 @@ stateDiagram-v2
  ├── [6] Analytics Worker              (15-min Congestion Baselines & Cascades)
  └── [7] Live Simulation Streamer      (Autonomous 25-Min Scenario Loop)
 ```
+
