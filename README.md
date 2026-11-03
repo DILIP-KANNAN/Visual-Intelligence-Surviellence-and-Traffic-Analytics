@@ -12,8 +12,10 @@ A distributed, city-scale intelligent transportation and surveillance platform d
 
 The platform supports automated cross-camera trajectory reconstruction, dynamic congestion analysis, cascade delay propagation modeling, statistical route anomaly detection, real-time vehicle watchlist surveillance, and automated incident dispatch over interactive GIS command center dashboards.
 
-> 📖 **Looking for in-depth technical documentation?**  
-> Check out the [Technical Design Document](TECHNICAL_DESIGN.md) for sequence diagrams, ER models, and mathematical formulations, or the [System Architecture & Feature Guide](SYSTEM_ARCHITECTURE_AND_FEATURES.md) for UI walkthroughs.
+> 📖 **Documentation & Related Repositories:**  
+> * 🔍 **Edge Perception & Vehicle Detection**: [**ANPR-for-VISTA**](https://github.com/DILIP-KANNAN/ANPR-for-VISTA) (`https://github.com/DILIP-KANNAN/ANPR-for-VISTA.git`) — The upstream computer vision pipeline for vehicle detection, license plate localization, and OCR extraction.
+> * 📐 **Technical Design Document**: [**TECHNICAL_DESIGN.md**](TECHNICAL_DESIGN.md) — Architectural sequence diagrams, ER models, and mathematical formulations.
+> * 🗺️ **Feature Guide**: [**SYSTEM_ARCHITECTURE_AND_FEATURES.md**](SYSTEM_ARCHITECTURE_AND_FEATURES.md) — UI walkthroughs and component breakdown.
 
 ---
 
@@ -23,7 +25,7 @@ VISTA decouples the edge perception layer from analytical engines through an eve
 
 ```mermaid
 flowchart LR
-    A["Edge ANPR / CCTV<br/>(or Simulation Streamer)"] -->|Normalized JSON| B["Redis Stream<br/>(anpr_events)"]
+    A["Edge ANPR / CCTV<br/>(ANPR-for-VISTA or Streamer)"] -->|Normalized JSON| B["Redis Stream<br/>(anpr_events)"]
     B --> C["Ingestion Engine<br/>(redis_consumer.py)"]
     C --> D[("PostgreSQL + PostGIS<br/>Spatial Database")]
     D -->|PostgreSQL Triggers| E["Event Publisher<br/>(trajectory_event_publisher.py)"]
@@ -34,7 +36,7 @@ flowchart LR
 ```
 
 ### Core Pipeline
-1. **Edge Perception**: Edge CCTV and AI pipelines detect vehicles, extract license plates, and push normalized events to Redis (`anpr_events`).
+1. **Edge Perception & ANPR**: Edge cameras run the deep learning perception pipeline from [**ANPR-for-VISTA**](https://github.com/DILIP-KANNAN/ANPR-for-VISTA) (YOLO vehicle detection + plate OCR) to capture vehicles and publish normalized observation JSON payloads to Redis (`anpr_events`). In development and evaluation, `demo_streamer.py` serves as the real-time scenario simulation engine.
 2. **Ingestion & Registration**: Background consumers auto-register vehicles and persist timestamped spatial coordinates (`Point, 4326`) into PostgreSQL.
 3. **Trajectory Reconstruction**: Associates sequential sightings of the same vehicle across camera pairs, computes travel duration and speed, and maps geometry along OpenStreetMap road networks.
 4. **Watchlist Surveillance**: Incoming observations are matched in real-time against `vehicle_watchlist` records, instantly generating `WATCHLIST_HIT` alerts.

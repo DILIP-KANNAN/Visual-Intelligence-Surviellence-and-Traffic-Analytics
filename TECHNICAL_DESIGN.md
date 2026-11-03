@@ -22,8 +22,8 @@ The **Visual Intelligence, Surveillance and Traffic Analytics (VISTA)** platform
 
 ```mermaid
 flowchart TD
-    subgraph EdgePerception["1. Edge Perception & Sensing Layer"]
-        CCTV["CCTV / Highway Cameras"] -->|Video Streams| EdgeAI["Edge AI: YOLOv8 + PaddleOCR"]
+    subgraph EdgePerception["1. Edge Perception & Sensing Layer (ANPR-for-VISTA)"]
+        CCTV["CCTV / Highway Cameras"] -->|Video Streams| EdgeAI["Edge AI: YOLO + OCR\n(github.com/DILIP-KANNAN/ANPR-for-VISTA)"]
         SimStreamer["Scenario Simulation Streamer\n(demo_streamer.py)"] -->|Continuous Synthetic Flow| RedisBus
         EdgeAI -->|JSON Plate Observations| RedisBus["Redis Stream: anpr_events"]
     end

@@ -44,13 +44,13 @@ flowchart TD
 
 ## 2. How Does Data Enter Without Physical CCTV Cameras?
 
-In a live smart city deployment, physical CCTV cameras run Edge AI (YOLO detection + PaddleOCR) to read license plates and push events into the ingestion pipeline.
+In a live smart city deployment, physical CCTV cameras run Edge AI (YOLO detection + PaddleOCR) to read license plates and push events into the ingestion pipeline. The edge vision detection codebase is maintained at [**ANPR-for-VISTA**](https://github.com/DILIP-KANNAN/ANPR-for-VISTA.git).
 
 In development, testing, and evaluation, we simulate this using the **Live Scenario Simulation Streamer** (`demo_streamer.py`) or the standalone producer client (`redis_producer.py`). 
 
 ### The Complete Event Pipeline:
 ```
-[ LIVE CCTV / VIDEO STREAM ] (Production)
+[ LIVE CCTV / VIDEO STREAM ] (Production via ANPR-for-VISTA)
               OR                                ──> Emits JSON: { camera_id, license_plate, timestamp, confidence }
 [ DEMO STREAMER (demo_streamer.py) ] (Dev/Demo)
               │
